@@ -7,13 +7,16 @@ require 'action_controller'
 require 'routing_filter'
 
 require 'minitest/autorun'
-require 'test_declarative'
-
 require 'test_adapters/rails'
 
 I18n.enforce_available_locales = false
 
-class MiniTest::Test
+# Declarative test syntax (replaces test_declarative gem)
+def test(name, &block)
+  define_method("test_#{name.gsub(/\s+/, '_')}", &block)
+end
+
+class Minitest::Test
   def draw_routes(&block)
     ActionDispatch::Routing::RouteSet.new.tap { |set| set.draw(&block) }
   end
