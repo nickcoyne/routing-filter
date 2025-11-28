@@ -23,7 +23,7 @@ module ActionDispatchJourneyRouterWithFiltering
     end
 
     # Recognize the routes
-    super(req) do |match, parameters, route|
+    super(req) do |match, parameters|
       # Merge in custom parameters that will be visible to the controller
       params = (parameters || {}).merge(filter_parameters)
 
@@ -35,7 +35,8 @@ module ActionDispatchJourneyRouterWithFiltering
       end
 
       # Yield results are dispatched to the controller
-      yield [match, params, route]
+      # Rails 8.1 expects (route, parameters) as separate arguments
+      yield(match, params)
     end
   end
 end
