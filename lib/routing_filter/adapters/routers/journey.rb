@@ -23,20 +23,25 @@ module ActionDispatchJourneyRouterWithFiltering
     end
 
     # Recognize the routes
-    super(req) do |match, parameters|
+    super(req) do |route, parameters|
       # Merge in custom parameters that will be visible to the controller
       params = (parameters || {}).merge(filter_parameters)
 
-      # Reset the path before yielding to the controller (prevents breakages in CSRF validation)
-      if req.is_a?(Hash)
-        req['PATH_INFO'] = original_path
-      else
-        req.path_info = original_path
+      # For anchored routes (regular controller actions), reset the path before
+      # yielding to prevent breakages in CSRF validation.
+      # For non-anchored routes (mounted engines), we must NOT reset the path here
+      # because Rails has already modified path_info to the post-match portion
+      # that the engine needs to route internally.
+      if route.path.anchored
+        if req.is_a?(Hash)
+          req['PATH_INFO'] = original_path
+        else
+          req.path_info = original_path
+        end
       end
 
       # Yield results are dispatched to the controller
-      # Rails 8.1 expects (route, parameters) as separate arguments
-      yield(match, params)
+      yield(route, params)
     end
   end
 end
